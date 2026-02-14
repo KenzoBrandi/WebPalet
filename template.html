@@ -62,7 +62,8 @@
         Your browser does not support the HTML canvas tag.</canvas>
         <canvas id="triangle0" class="shape" style="border:1px solid #d3d3d3;">
         Your browser does not support the HTML canvas tag.</canvas>
-        <input type="color">
+        <input type="color" value="#000000" autocomplete="off">
+        <button id="ChangeMode">Changer de Mode déplacement/placement</button>
     </div>
     <div id="drawingArea">
     </div>
@@ -103,6 +104,8 @@
             ctx.clearRect(0, 0, canvaWidth, canvaHeight);
             ctx.beginPath();
             ctx.arc(canvaWidth/2, canvaHeight/2, min/2, 0, 2*Math.PI);
+            ctx.strokeStyle = color;    
+            
             ctx.stroke();
             
             if (numberOfCircle === 0) {
@@ -122,6 +125,8 @@
             ctx.clearRect(0, 0, canvaWidth, canvaHeight);
             ctx.beginPath(); 
             ctx.rect(0, 0, canvaWidth, canvaHeight); 
+            ctx.strokeStyle = color;
+            
             ctx.stroke(); 
 
             if (numberOfRectangle === 0) {
@@ -143,6 +148,8 @@
             ctx.lineTo(canvaWidth, canvaHeight);
             ctx.lineTo(0, canvaHeight);
             ctx.closePath();
+            ctx.strokeStyle = color;
+            
             ctx.stroke();
 
             if (numberOfTriangle === 0) {
@@ -204,6 +211,39 @@
             selectedShape = "triangle";
         })
 
+        $(document).on("click", ".shape", function() {
+            // Empêcher pour les formes de sélection
+            if ($(this).parent().attr('id') === 'selectionArea') {
+                return;
+            }
+            
+            console.log("changement de couleur de la forme actuelle");
+            const color = $("input[type='color']").val();
+            const ctx = this.getContext("2d");
+            const id = this.id;
+            const width = this.width;
+            const height = this.height;
+            
+            // Redessiner avec la nouvelle couleur
+            ctx.clearRect(0, 0, width, height);
+            ctx.strokeStyle = color;
+            ctx.beginPath();
+            
+            if (id.startsWith("circle")) {
+                const min = Math.min(width, height);
+                ctx.arc(width/2, height/2, min/2, 0, 2*Math.PI);
+            } else if (id.startsWith("rectangle")) {
+                ctx.rect(0, 0, width, height);
+            } else if (id.startsWith("triangle")) {
+                ctx.moveTo(width/2, 0);
+                ctx.lineTo(width, height);
+                ctx.lineTo(0, height);
+                ctx.closePath();
+            }
+            
+            ctx.stroke();
+        })
+
         $("#drawingArea").mousedown(function(event) { 
             console.log("Selection de la zone de dessin"); 
             if (selectedShape === null) {
@@ -216,7 +256,9 @@
 
         $("#drawingArea").mouseup(function(event) {
             console.log("Relachement de la souris");
-            if (selectedShape !== null) {
+            distance = Math.sqrt(Math.pow(leftUpCoords.x-event.clientX, 2)+Math.pow(leftUpCoords.y-event.clientY, 2));
+            console.log("distance : "+distance)
+            if (selectedShape !== null && distance > 10) {
                 RightDownCoords.x = event.clientX; 
                 RightDownCoords.y = event.clientY; 
                 createCanva(); 
